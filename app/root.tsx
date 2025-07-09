@@ -4,10 +4,20 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "@remix-run/react";
-import type { LinksFunction } from "@remix-run/node";
-
+import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
+import { Navbar } from '~/components/Navbar'
 import "./tailwind.css";
+import { RoomPersistenceProvider } from "~/context/RoomPersistenceContext";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  return {
+    ENV: {
+      SOCKET_URL: process.env.SOCKET_URL || "https://socket.stormyfocus.cloud",
+    },
+  };
+}
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -23,6 +33,8 @@ export const links: LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const data = useLoaderData<typeof loader>();
+  
   return (
     <html lang="en">
       <head>
@@ -32,9 +44,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <RoomPersistenceProvider>
+          <Navbar />
+          {children}
+        </RoomPersistenceProvider>
         <ScrollRestoration />
         <Scripts />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
+          }}
+        />
       </body>
     </html>
   );
