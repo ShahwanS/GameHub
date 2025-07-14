@@ -60,7 +60,7 @@ export default function GameActivity({
           <p className="text-blue-200 mb-3">
             {currentAsk.targetPlayerName} has {currentAsk.shownCards.length} {currentAsk.requestedRank}(s)
           </p>
-          <div className="flex gap-2 flex-wrap">
+          {/* <div className="flex gap-2 flex-wrap">
             {currentAsk.shownCards.map((card, idx) => (
               <motion.div
                 key={idx}
@@ -71,7 +71,7 @@ export default function GameActivity({
                 <Card rank={card.rank as any} suit={card.suit as any} />
               </motion.div>
             ))}
-          </div>
+          </div> */}
           <p className="text-blue-200 mt-3 text-sm">
             Select the suits you think these cards are...
           </p>
