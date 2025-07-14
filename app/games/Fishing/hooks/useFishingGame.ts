@@ -109,7 +109,6 @@ export function useFishingGame() {
     setSelectedRank(rank);
     setShowCardSelection(false);
   };
-
   const handleAskForCards = () => {
     if (!selectedRank || !selectedPlayer || !latestState || !playerId) return;
     const state = latestState as FishingGameState;
@@ -211,7 +210,14 @@ export function useFishingGame() {
           cardsExchanged: matchingCards
         };
         
-        // Player gets another turn (completed a set)
+        // Check if player should pass turn (no cards left and deck empty)
+        const shouldPassTurn = newState.playerHands[playerId].length === 0 && newState.deck.length === 0;
+        
+        if (shouldPassTurn) {
+          newState.currentPlayerIndex = (newState.currentPlayerIndex + 1) % newState.players.length;
+          newState.players = newState.players.map((p, i) => ({ ...p, isCurrentPlayer: i === newState.currentPlayerIndex }));
+        }
+        
         // Check for game over
         const { gameOver, winner } = checkGameOver(newState);
         newState.gameOver = gameOver;
@@ -225,7 +231,6 @@ export function useFishingGame() {
       }
       
       // Case 2b: Some cards found (1-3) - show guess dialog
-    
       setCurrentAsk({
         targetPlayerId: selectedPlayer,
         targetPlayerName: allPlayers.find(p => p.id === selectedPlayer)?.name || "Unknown",
@@ -293,9 +298,10 @@ export function useFishingGame() {
     newState.playerStockpiles = playerStockpiles;
     
     // Turn logic: 
-    // - If player guessed ALL cards correctly, they get another turn
-    // - Otherwise, pass turn
-    if (!guessedAllCorrectly) {
+    // - Pass turn if:
+    //   1. Player didn't guess all cards correctly, or
+    //   2. Player has no cards and deck is empty
+    if (!guessedAllCorrectly || (newState.playerHands[playerId].length === 0 && newState.deck.length === 0)) {
       newState.currentPlayerIndex = (newState.currentPlayerIndex + 1) % newState.players.length;
       newState.players = newState.players.map((p, i) => ({ ...p, isCurrentPlayer: i === newState.currentPlayerIndex }));
     }
