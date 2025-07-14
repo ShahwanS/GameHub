@@ -1,5 +1,5 @@
 // app/routes/games/$gameId.tsx
-import { useNavigate } from "@remix-run/react";
+import { useNavigate, useLocation } from "@remix-run/react";
 import React, {
   useState,
   createContext,
@@ -94,6 +94,7 @@ export default function GameLayout({
   children,
 }: GameLayoutProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { roomId, setRoomId, playerId, setPlayerId } = useRoomPersistence();
 
   const [error, setError] = useState<string | null>(null);
@@ -148,13 +149,21 @@ export default function GameLayout({
   useEffect(() => {
     if (gameId && roomId && playerId && latestState && playerDetails.length) {
       if (playerDetails.some((p) => p.id === playerId)) {
-        navigate(`/games/${gameId}/room/${roomId}`);
+        const expectedPath = `/games/${gameId}/room/${roomId}`;
+        // Only navigate if we're not already on the correct route
+        if (location.pathname !== expectedPath) {
+          navigate(expectedPath);
+        }
         setIsJoiningRoom(false);
       }
     } else if (gameId && roomId && !playerId) {
-      navigate(`/games/${gameId}`);
+      const expectedPath = `/games/${gameId}`;
+      // Only navigate if we're not already on the correct route
+      if (location.pathname !== expectedPath) {
+        navigate(expectedPath);
+      }
     }
-  }, [gameId, roomId, playerId, latestState, playerDetails, navigate]);
+  }, [gameId, roomId, playerId, latestState, playerDetails, navigate, location.pathname]);
 
   async function handleCreate(name: string) {
     try {
