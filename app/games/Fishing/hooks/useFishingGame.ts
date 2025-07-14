@@ -260,8 +260,8 @@ export function useFishingGame() {
       correctGuesses.includes(card.suit)
     );
     
-    // Calculate if player guessed any cards correctly
-    const guessedAnyCorrectly = correctlyGuessedCards.length > 0;
+    // Calculate if player guessed ALL cards correctly
+    const guessedAllCorrectly = correctlyGuessedCards.length === currentAsk.shownCards.length;
     
     // Transfer correctly guessed cards
     if (correctlyGuessedCards.length > 0) {
@@ -276,13 +276,13 @@ export function useFishingGame() {
       );
     }
     
-    // Draw a card if deck has cards (only if player guessed NO cards correctly)
-    if (newState.deck.length > 0 && !guessedAnyCorrectly) {
+    // Draw a card if not all guesses were correct
+    if (newState.deck.length > 0 && !guessedAllCorrectly) {
       const drawnCard = newState.deck.pop()!;
       newState.playerHands[playerId] = [...(newState.playerHands[playerId] || []), drawnCard];
     }
     
-    // Check for completed sets once after all changes
+    // Check for completed sets after all changes
     const { playerHands, playerScores, playerStockpiles } = checkAndHandleCompletedSets(
       newState.playerHands,
       newState.playerScores,
@@ -293,9 +293,9 @@ export function useFishingGame() {
     newState.playerStockpiles = playerStockpiles;
     
     // Turn logic: 
-    // - If player guessed ANY cards correctly, they get another turn
-    // - If player guessed NO cards correctly, pass turn
-    if (!guessedAnyCorrectly) {
+    // - If player guessed ALL cards correctly, they get another turn
+    // - Otherwise, pass turn
+    if (!guessedAllCorrectly) {
       newState.currentPlayerIndex = (newState.currentPlayerIndex + 1) % newState.players.length;
       newState.players = newState.players.map((p, i) => ({ ...p, isCurrentPlayer: i === newState.currentPlayerIndex }));
     }
@@ -315,7 +315,7 @@ export function useFishingGame() {
       requestedRank: currentAsk.requestedRank,
       targetPlayerCards: currentAsk.shownCards,
       guessedSuits: guessedSuits,
-      guessCorrect: correctlyGuessedCards.length > 0,
+      guessCorrect: guessedAllCorrectly,
       cardsExchanged: correctlyGuessedCards
     };
     
