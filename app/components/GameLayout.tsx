@@ -1,4 +1,3 @@
-// app/routes/games/$gameId.tsx
 import { useNavigate, useLocation } from "@remix-run/react";
 import React, {
   useState,
@@ -37,7 +36,7 @@ export function useRoom() {
   return ctx;
 }
 
-// --- UI helpers identical to your original ---
+
 function Spinner() {
   return (
     <div className="flex justify-center items-center py-8">

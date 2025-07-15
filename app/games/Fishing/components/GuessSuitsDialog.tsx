@@ -30,7 +30,7 @@ export default function GuessSuitsDialog({
 }: GuessSuitsDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-gradient-to-br from-slate-700 to-slate-600 border-white/20 max-w-sm sm:max-w-md md:max-w-lg">
+      <DialogContent className="bg-gradient-to-br from-slate-700 to-slate-600 border-white/20 max-w-sm sm:max-w-md md:max-w-lg" onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="text-white text-lg sm:text-xl">Guess the suits!</DialogTitle>
         </DialogHeader>
@@ -38,6 +38,9 @@ export default function GuessSuitsDialog({
           <>
             <p className="text-white/90 mb-4 sm:mb-6 text-center text-sm sm:text-base">
               {currentAsk.targetPlayerName} has {currentAsk.shownCards.length} {currentAsk.requestedRank}(s). Select the suits you think they are:
+            </p>
+            <p className="text-red-300 mb-4 text-center text-xs">
+              ⚠️ Warning: Canceling will count as a wrong guess and end your turn!
             </p>
             <div className="mb-4 sm:mb-6 flex gap-2 sm:gap-3 md:gap-4 flex-wrap justify-center">
               {["S", "H", "D", "C"].map(suit => (
@@ -65,9 +68,9 @@ export default function GuessSuitsDialog({
           <Button 
             variant="outline" 
             onClick={() => onOpenChange(false)}
-            className="bg-white/10 border-white/20 text-white hover:bg-white/20 w-full sm:w-auto"
+            className="bg-red-500/20 border-red-400/30 text-red-300 hover:bg-red-500/30 w-full sm:w-auto"
           >
-            Cancel
+            Cancel (Wrong Guess)
           </Button>
           <Button 
             onClick={handleGuessSuits}

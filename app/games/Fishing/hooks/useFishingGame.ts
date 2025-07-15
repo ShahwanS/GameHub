@@ -5,6 +5,9 @@ import {
   shuffleDeck,
   dealCards,
   checkAndHandleCompletedSets,
+  checkGameOver,
+  passTurn,
+  
 } from "../gameLogic";
 import { sortHand } from "~/utils/cardUtils";
 import type { FishingGameState, CardType } from "../types";
@@ -125,7 +128,7 @@ export function useFishingGame() {
     
     // Case 1: No cards found - draw a card and pass turn
     if (matchingCards.length === 0) {
-      const newState = { ...state };
+      let newState = { ...state };
       
       if (newState.deck.length > 0) {
         const drawnCard = newState.deck.pop()!;
@@ -156,8 +159,7 @@ export function useFishingGame() {
       };
       
       // Always pass turn to next player when drawing a card (even if a set was completed)
-      newState.currentPlayerIndex = (newState.currentPlayerIndex + 1) % newState.players.length;
-      newState.players = newState.players.map((p, i) => ({ ...p, isCurrentPlayer: i === newState.currentPlayerIndex }));
+      newState = passTurn(newState);
       
       // Check for game over
       const { gameOver, winner } = checkGameOver(newState);
@@ -178,7 +180,7 @@ export function useFishingGame() {
       const askingPlayerCardsOfRank = askingPlayerHand.filter(card => card.rank === selectedRank);
       
       if (askingPlayerCardsOfRank.length === 3 && matchingCards.length === 1) {
-        const newState = { ...state };
+        let newState = { ...state };
         // Transfer the 4th card to asking player
         newState.playerHands[playerId] = [...(newState.playerHands[playerId] || []), ...matchingCards];
         // Remove the card from target player
@@ -214,8 +216,7 @@ export function useFishingGame() {
         const shouldPassTurn = newState.playerHands[playerId].length === 0 && newState.deck.length === 0;
         
         if (shouldPassTurn) {
-          newState.currentPlayerIndex = (newState.currentPlayerIndex + 1) % newState.players.length;
-          newState.players = newState.players.map((p, i) => ({ ...p, isCurrentPlayer: i === newState.currentPlayerIndex }));
+          newState = passTurn(newState);
         }
         
         // Check for game over
@@ -255,7 +256,7 @@ export function useFishingGame() {
       return;
     }
     const state = latestState as FishingGameState;
-    const newState = { ...state };
+    let newState = { ...state };
     
     // Find correctly guessed cards
     const correctGuesses = guessedSuits.filter(guessedSuit => 
@@ -302,8 +303,7 @@ export function useFishingGame() {
     //   1. Player didn't guess all cards correctly, or
     //   2. Player has no cards and deck is empty
     if (!guessedAllCorrectly || (newState.playerHands[playerId].length === 0 && newState.deck.length === 0)) {
-      newState.currentPlayerIndex = (newState.currentPlayerIndex + 1) % newState.players.length;
-      newState.players = newState.players.map((p, i) => ({ ...p, isCurrentPlayer: i === newState.currentPlayerIndex }));
+      newState = passTurn(newState);
     }
     
     // Check for game over
@@ -342,7 +342,53 @@ export function useFishingGame() {
 
   const handleGuessDialogClose = (open: boolean) => {
     if (!open) {
-      // Dialog is being closed, reset all states
+      // Dialog is being closed, treat it as a wrong guess to prevent information leakage
+      if (currentAsk && latestState && playerId) {
+        const state = latestState as FishingGameState;
+        let newState = { ...state };
+        
+        // Draw a card since the guess was wrong (canceled)
+        if (newState.deck.length > 0) {
+          const drawnCard = newState.deck.pop()!;
+          newState.playerHands[playerId] = [...(newState.playerHands[playerId] || []), drawnCard];
+        }
+        
+        // Check for completed sets after drawing
+        const { playerHands, playerScores, playerStockpiles } = checkAndHandleCompletedSets(
+          newState.playerHands,
+          newState.playerScores,
+          newState.playerStockpiles
+        );
+        newState.playerHands = playerHands;
+        newState.playerScores = playerScores;
+        newState.playerStockpiles = playerStockpiles;
+        
+        // Pass turn to next player since guess was wrong
+        newState = passTurn(newState);
+        
+        // Check for game over
+        const { gameOver, winner } = checkGameOver(newState);
+        newState.gameOver = gameOver;
+        newState.winner = winner;
+        
+        // Record the move as a wrong guess
+        const askingPlayerName = allPlayers.find(p => p.id === playerId)?.name || "Unknown";
+        newState.lastMove = {
+          playerId,
+          playerName: askingPlayerName,
+          targetPlayerId: currentAsk.targetPlayerId,
+          timestamp: new Date().toISOString(),
+          requestedRank: currentAsk.requestedRank,
+          targetPlayerCards: currentAsk.shownCards,
+          guessedSuits: guessedSuits,
+          guessCorrect: false,
+          cardsExchanged: []
+        };
+        
+        pushState(newState);
+      }
+      
+      // Reset all states
       setShowGuessPopup(false);
       setCurrentAsk(null);
       setGuessedSuits([]);
@@ -350,26 +396,7 @@ export function useFishingGame() {
     }
   };
 
-  const checkGameOver = (state: FishingGameState): { gameOver: boolean; winner: string | null } => {
-    // Check if all hands are empty
-    const allHands = Object.values(state.playerHands);
-    const totalCards = allHands.reduce((sum, hand) => sum + hand.length, 0);
-    const gameOver = totalCards === 0 || allHands.every(hand => hand.length === 0);
-    
-    if (gameOver) {
-      // Find the winner(s)
-      const entries = Object.entries(state.playerScores);
-      if (entries.length === 0) return { gameOver: true, winner: null };
-      
-      const maxScore = Math.max(...entries.map(([_, score]) => score));
-      const winners = entries.filter(([_, score]) => score === maxScore);
-      
-      const winner = winners.length === 1 ? winners[0][0] : null;
-      return { gameOver: true, winner };
-    }
-    
-    return { gameOver: false, winner: null };
-  };
+
 
   useEffect(() => {
     if (
