@@ -1,4 +1,6 @@
-# Welcome to Remix!
+# Welcome to GameSprout!
+
+A collection of engaging mini-games built with Remix, featuring both local and online multiplayer experiences.
 
 - 📖 [Remix docs](https://remix.run/docs)
 

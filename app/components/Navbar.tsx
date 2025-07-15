@@ -79,7 +79,7 @@ export function Navbar() {
             </div>
             <div className="flex items-center gap-2">
               <span className="font-black text-xl tracking-tight bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                GameHub
+                GameSprout
               </span>
               <div className="flex items-center gap-1">
                 <Sparkles size={12} className="text-purple-400" />

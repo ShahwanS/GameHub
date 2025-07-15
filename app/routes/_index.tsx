@@ -6,7 +6,7 @@ import { Coins, Zap, Fish, Sparkles, Users, Monitor, Play, ArrowRight } from 'lu
 import React from 'react'
 
 export const meta: MetaFunction = () => [{
-  title: 'GameHub - Mini Game Collection',
+  title: 'GameSprout - Mini Game Collection',
 }]
 
 type GameType = 'online' | 'local'
@@ -205,7 +205,7 @@ export default function Index() {
               
               <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-6">
                 <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-cyan-400 bg-clip-text text-transparent">
-                  GameHub
+                  GameSprout
                 </span>
               </h1>
               
