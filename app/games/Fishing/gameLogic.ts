@@ -103,3 +103,21 @@ export function passTurn(state: FishingGameState): FishingGameState {
   return newState;
 }
 
+// Pass turn to next player who has cards
+export function passTurnToNextPlayerWithCards(state: FishingGameState): FishingGameState {
+  const newState = { ...state };
+  let attempts = 0;
+  const maxAttempts = newState.players.length; // Prevent infinite loop
+  
+  do {
+    newState.currentPlayerIndex = (newState.currentPlayerIndex + 1) % newState.players.length;
+    attempts++;
+  } while (
+    attempts < maxAttempts && 
+    newState.playerHands[newState.players[newState.currentPlayerIndex].id]?.length === 0
+  );
+  
+  newState.players = newState.players.map((p, i) => ({ ...p, isCurrentPlayer: i === newState.currentPlayerIndex }));
+  return newState;
+}
+

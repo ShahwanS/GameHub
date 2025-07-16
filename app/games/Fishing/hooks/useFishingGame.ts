@@ -7,7 +7,7 @@ import {
   checkAndHandleCompletedSets,
   checkGameOver,
   passTurn,
-  
+  passTurnToNextPlayerWithCards,
 } from "../gameLogic";
 import { sortHand } from "~/utils/cardUtils";
 import type { FishingGameState, CardType } from "../types";
@@ -159,7 +159,7 @@ export function useFishingGame() {
       };
       
       // Always pass turn to next player when drawing a card (even if a set was completed)
-      newState = passTurn(newState);
+      newState = passTurnToNextPlayerWithCards(newState);
       
       // Check for game over
       const { gameOver, winner } = checkGameOver(newState);
@@ -212,11 +212,9 @@ export function useFishingGame() {
           cardsExchanged: matchingCards
         };
         
-        // Check if player should pass turn (no cards left and deck empty)
-        const shouldPassTurn = newState.playerHands[playerId].length === 0 && newState.deck.length === 0;
-        
-        if (shouldPassTurn) {
-          newState = passTurn(newState);
+        // Pass turn if player has no cards left (regardless of deck)
+        if (newState.playerHands[playerId].length === 0) {
+          newState = passTurnToNextPlayerWithCards(newState);
         }
         
         // Check for game over
@@ -301,9 +299,9 @@ export function useFishingGame() {
     // Turn logic: 
     // - Pass turn if:
     //   1. Player didn't guess all cards correctly, or
-    //   2. Player has no cards and deck is empty
-    if (!guessedAllCorrectly || (newState.playerHands[playerId].length === 0 && newState.deck.length === 0)) {
-      newState = passTurn(newState);
+    //   2. Player has no cards left (regardless of deck)
+    if (!guessedAllCorrectly || newState.playerHands[playerId].length === 0) {
+      newState = passTurnToNextPlayerWithCards(newState);
     }
     
     // Check for game over
